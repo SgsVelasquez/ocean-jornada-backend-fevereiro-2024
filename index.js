@@ -5,54 +5,66 @@ const dbURL = 'mongodb+srv://admin:NMq6WrHl3qSjFPat@cluster0.jf4xsss.mongodb.net
 const dbname = 'OceanJornadaBackendFev2024'
 
 async function main() {
-  const client = new MongoClient(dbURL)
+  const client = new MongoClient(dbUrl)
 
-  console.log('Conectando')
+  console.log('Conectando ao banco de dados...')
   await client.connect()
-  console.log('Conectado')
+  console.log('Banco de dados conectado com sucesso!')
 
   const app = express()
 
   app.get('/', function (req, res) {
-    res.send('Hello World')
+    res.send('Hello, World!')
   })
 
   app.get('/oi', function (req, res) {
-    res.send("Hello World!");
+    res.send('Olá, mundo!')
   })
 
-  const lista = ['Rick', 'Morty', 'Summer']
+  // Lista de Personagens
+  const lista = ['Rick Sanchez', 'Morty Smith', 'Summer Smith']
+  //              0               1              2
 
-  app.get('/item', function (req, res) {
-    //envia lista
-    res.send(lista)
+  const db = client.db(dbName)
+  const collection = db.collection('items')
+
+  // Read All -> [GET] /item
+  app.get('/item', async function (req, res) {
+    // Realizamos a operação de find na collection do MongoDB
+    const items = await collection.find().toArray()
+
+    // Envio todos os documentos como resposta HTTP
+    res.send(items)
   })
 
+  // Read By ID -> [GET] /item/:id
   app.get('/item/:id', function (req, res) {
-    //Acesso id no parametro de rota
+    // Acesso o ID no parâmetro de rota
     const id = req.params.id
-    //Acesso item na lista baseado no id
+
+    // Acesso item na lista baseado no ID recebido
     const item = lista[id]
-    //enviando o item como resposta
+
+    // Envio o item obtido como resposta HTTP
     res.send(item)
   })
 
-  //sinalizando que o corpo da req e JSON
+  // Sinalizamos que o corpo da requisição está em JSON
   app.use(express.json())
 
-  //Creat POST
+  // Create -> [POST] /item
   app.post('/item', function (req, res) {
-    //Extraindo o corpo da req
+    // Extraímos o corpo da requisição
     const body = req.body
 
-    //pegando o nome que foi enviado
+    // Pegamos o nome (string) que foi enviado dentro do corpo
     const item = body.nome
 
-    //colocando nome dentro da lista item
+    // Colocamos o nome dentro da lista de itens
     lista.push(item)
 
-    //enviando uma resposta
-    res.send('item adicionado')
+    // Enviamos uma resposta de sucesso
+    res.send('Item adicionado com sucesso!')
   })
 
   app.listen(3000)
